@@ -402,6 +402,15 @@ typedef struct {
  */
 typedef struct I2CDriver I2CDriver;
 
+
+#if STM32_I2C_SLAVE_ENABLE
+
+typedef  void (*i2c_slave_transmit_callback_t)(I2CDriver *i2cp);
+typedef  void (*i2c_slave_receive_callback_t)(I2CDriver *i2cp, const uint8_t *txbuf, size_t txbytes);
+
+#endif /* STM32_I2C_SLAVE_ENABLE */
+
+
 /**
  * @brief   Structure representing an I2C driver.
  */
@@ -456,6 +465,29 @@ struct I2CDriver {
    * @brief     Pointer to the I2Cx registers block.
    */
   I2C_TypeDef               *i2c;
+
+#if STM32_I2C_SLAVE_ENABLE
+  /**
+   * @brief     Pointer to function which will be called on transmission request.
+   */
+  i2c_slave_transmit_callback_t txcb;
+  /**
+   * @brief     Pointer to function which will be called after data reception.
+   */
+  i2c_slave_receive_callback_t  rxcb;
+  /**
+    * @brief     Pointer to storage buffer.
+    */
+  uint8_t                      *rxbuf;
+  /**
+   * @brief    Storage buffer size.
+   */
+  size_t                        rxbytes;
+  /**
+   * @brief    Thread for callbacks.
+   */
+  thread_reference_t            xbthread;
+#endif /* STM32_I2C_SLAVE_ENABLE */
 };
 
 /*===========================================================================*/
@@ -502,6 +534,17 @@ extern "C" {
   msg_t i2c_lld_master_receive_timeout(I2CDriver *i2cp, i2caddr_t addr,
                                        uint8_t *rxbuf, size_t rxbytes,
                                        sysinterval_t timeout);
+
+#if STM32_I2C_SLAVE_ENABLE
+
+  void i2c_lld_onRequest(I2CDriver *i2cp, i2c_slave_transmit_callback_t callback);
+  msg_t i2c_lld_matchAddress(I2CDriver *i2cp, i2caddr_t  addr);
+  msg_t i2c_lld_slave_on_receive(I2CDriver *i2cp, uint8_t *rxbuf, size_t rxbytes);
+  msg_t i2c_lld_slave_start_transmission(I2CDriver *i2cp, const uint8_t *txbuf,
+                                         size_t txbytes);
+
+#endif /* STM32_I2C_SLAVE_ENABLE */
+
 #ifdef __cplusplus
 }
 #endif
