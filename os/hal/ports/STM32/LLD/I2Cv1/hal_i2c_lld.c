@@ -1049,7 +1049,7 @@ msg_t i2c_lld_slave_on_receive(I2CDriver *i2cp, uint8_t *rxbuf, size_t rxbytes)
   dmaStreamSetTransactionSize(i2cp->dmarx, rxbytes);
   /* Calculating the time window for the timeout on the busy bus condition.*/
   start = osalOsGetSystemTimeX();
-  end = start + OSAL_MS2ST(STM32_I2C_BUSY_TIMEOUT);
+  end = start + OSAL_MS2I(STM32_I2C_BUSY_TIMEOUT);
   /* Waits until BUSY flag is reset or, alternatively, for a timeout condition.*/
   while (true) {
 	osalSysLock();
@@ -1059,7 +1059,7 @@ msg_t i2c_lld_slave_on_receive(I2CDriver *i2cp, uint8_t *rxbuf, size_t rxbytes)
 	  break;
 	/* If the system time went outside the allowed window then a timeout
 		  condition is returned.*/
-	if (!osalOsIsTimeWithinX(osalOsGetSystemTimeX(), start, end))
+	if (!osalTimeIsInRangeX(osalOsGetSystemTimeX(), start, end))
 	  return MSG_TIMEOUT;
 	osalSysUnlock();
   }
@@ -1096,7 +1096,7 @@ msg_t i2c_lld_slave_start_transmission(I2CDriver *i2cp, const uint8_t *txbuf, si
   dmaStreamSetTransactionSize(i2cp->dmatx, txbytes);
   /* Calculating the time window for the timeout on the busy bus condition.*/
   start = osalOsGetSystemTimeX();
-  end = start + OSAL_MS2ST(STM32_I2C_BUSY_TIMEOUT);
+  end = start + OSAL_MS2I(STM32_I2C_BUSY_TIMEOUT);
   /* Waits until BUSY flag is reset or, alternatively, for a timeout condition.*/
   while (true) {
     osalSysLock();
@@ -1106,7 +1106,7 @@ msg_t i2c_lld_slave_start_transmission(I2CDriver *i2cp, const uint8_t *txbuf, si
       break;
     /* If the system time went outside the allowed window then a timeout
 		  condition is returned.*/
-    if (!osalOsIsTimeWithinX(osalOsGetSystemTimeX(), start, end))
+    if (!osalTimeIsInRangeX(osalOsGetSystemTimeX(), start, end))
       return MSG_TIMEOUT;
     osalSysUnlock();
   }
