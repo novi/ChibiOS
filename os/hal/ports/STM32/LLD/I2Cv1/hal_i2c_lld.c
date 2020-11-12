@@ -966,6 +966,11 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
   if (msg != MSG_OK) {
     dmaStreamDisable(i2cp->dmatx);
     dmaStreamDisable(i2cp->dmarx);
+  }
+
+  return msg;
+}
+
 #if STM32_I2C_SLAVE_ENABLE
 /**
  * @brief   Set request handler.
