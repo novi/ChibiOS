@@ -982,7 +982,7 @@ msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
  *
  * @notapi
  */
-void i2c_lld_onRequest(I2CDriver *i2cp, i2c_slave_transmit_callback_t callback)
+void i2c_lld_set_slave_transmit_callback(I2CDriver *i2cp, i2c_slave_transmit_callback_t callback)
 {
   /* Set Request Callback */
   i2cp->txcb = callback;
@@ -1002,7 +1002,7 @@ void i2c_lld_onRequest(I2CDriver *i2cp, i2c_slave_transmit_callback_t callback)
  *
  * @notapi
  */
-msg_t i2c_lld_matchAddress(I2CDriver *i2cp, i2caddr_t  addr)
+msg_t i2c_lld_match_address(I2CDriver *i2cp, i2caddr_t  addr)
 {
   I2C_TypeDef *dp = i2cp->i2c;
 

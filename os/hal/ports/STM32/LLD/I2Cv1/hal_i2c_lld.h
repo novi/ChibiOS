@@ -535,10 +535,13 @@ extern "C" {
                                        uint8_t *rxbuf, size_t rxbytes,
                                        sysinterval_t timeout);
 
+// I2C Slave added from
+// http://www.chibios.com/forum/viewtopic.php?t=3544
+// 
 #if STM32_I2C_SLAVE_ENABLE
 
-  void i2c_lld_onRequest(I2CDriver *i2cp, i2c_slave_transmit_callback_t callback);
-  msg_t i2c_lld_matchAddress(I2CDriver *i2cp, i2caddr_t  addr);
+  void i2c_lld_set_slave_transmit_callback(I2CDriver *i2cp, i2c_slave_transmit_callback_t callback);
+  msg_t i2c_lld_match_address(I2CDriver *i2cp, i2caddr_t  addr);
   msg_t i2c_lld_slave_on_receive(I2CDriver *i2cp, uint8_t *rxbuf, size_t rxbytes);
   msg_t i2c_lld_slave_start_transmission(I2CDriver *i2cp, const uint8_t *txbuf,
                                          size_t txbytes);
