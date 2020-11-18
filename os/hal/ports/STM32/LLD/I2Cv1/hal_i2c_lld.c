@@ -120,6 +120,9 @@
 #define  I2C_EV3_SLAVE_BYTE_TRANSMITTING                                    \
 	((uint32_t)((I2C_SR2_TRA | I2C_SR2_BUSY) << 16) | I2C_SR1_TXE)
 
+#define  I2C_EV3_SLAVE_BYTE_TRANSMIT_STOP_DETECTED                          \
+	((uint32_t)((I2C_SR2_TRA | I2C_SR2_BUSY) << 16) | I2C_SR1_TXE | I2C_SR1_STOPF)
+
 #define  I2C_EV2_SLAVE_ACK_FAILURE                                          \
 	((uint32_t) I2C_SR1_AF )
 
@@ -289,6 +292,8 @@ static void i2c_lld_serve_event_interrupt(I2CDriver *i2cp) {
   I2C_TypeDef *dp = i2cp->i2c;
   uint32_t regSR2 = dp->SR2;
   uint32_t event = dp->SR1;
+  if ( (event & I2C_ERROR_MASK) ) 
+    dp->SR1 &= ~(I2C_ERROR_MASK); // SLAVE workaround
 
   /* Interrupts are disabled just before dmaStreamEnable() because there
      is no need of interrupts until next transaction begin. All the work is
@@ -333,15 +338,15 @@ static void i2c_lld_serve_event_interrupt(I2CDriver *i2cp) {
     break;
 #if STM32_I2C_SLAVE_ENABLE
   case  I2C_EV1_SLAVE_RECEIVER_ADDRESS_MATCHED:
-  dp->CR1 &= ~I2C_CR1_STOP; // need this
-  dp->CR1 &= ~I2C_CR1_ACK; // need this
+  dp->CR1 &= ~I2C_CR1_STOP;
+  dp->CR1 &= ~I2C_CR1_ACK;
 	//dp->CR2 &= ~I2C_CR2_ITEVTEN;
 	dmaStreamEnable(i2cp->dmarx);
 
 	break;
   case  I2C_EV1_SLAVE_TRANSMITTER_ADDRESS_MATCHED:
-  dp->CR1 &= ~I2C_CR1_STOP; // need this
-  dp->CR1 &= ~I2C_CR1_ACK; // need this
+  dp->CR1 &= ~I2C_CR1_STOP;
+  dp->CR1 &= ~I2C_CR1_ACK;
 	if(i2cp->txcb != NULL)
 	{
 	  i2cp->txcb(i2cp);
@@ -362,16 +367,21 @@ static void i2c_lld_serve_event_interrupt(I2CDriver *i2cp) {
 	  i2cp->rxcb(i2cp, i2cp->rxbuf, i2cp->rxbytes);
     }
 	break;
-//  case  I2C_EV3_SLAVE_BYTE_TRANSMITTED:
+  case  I2C_EV3_SLAVE_BYTE_TRANSMIT_STOP_DETECTED:
+    // dp->CR2 |= I2C_CR2_ITEVTEN;
+	  // dp->CR1 |= I2C_CR1_ACK;
+    osalDbgAssert(false, "TODO1");   
+  break;
+  case  I2C_EV3_SLAVE_BYTE_TRANSMITTED:
+  osalDbgAssert(false, "TODO2");   
+  break;
   case  I2C_EV3_SLAVE_BYTE_TRANSMITTING:
 	  dp->CR1 &= ~I2C_CR1_STOP;
-    // dp->CR1 |= I2C_CR1_STOP;
 	  dp->CR2 |= I2C_CR2_ITEVTEN;
 	  dp->CR1 |= I2C_CR1_ACK;
 	break;
 case  I2C_EV2_SLAVE_ACK_FAILURE:
-  (void)event;
-  while (1);  
+  osalDbgAssert(false, "TODO3");  
   break;
 #endif /* STM32_I2C_SLAVE_ENABLE */
 
