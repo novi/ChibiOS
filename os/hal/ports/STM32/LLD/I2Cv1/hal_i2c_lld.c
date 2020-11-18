@@ -461,9 +461,6 @@ static void i2c_lld_serve_error_interrupt(I2CDriver *i2cp, uint16_t sr) {
     i2cp->errors |= I2C_ARBITRATION_LOST;
 
   if (sr & I2C_SR1_AF) {                            /* Acknowledge fail.    */
-    i2cp->i2c->CR2 &= ~I2C_CR2_ITEVTEN;
-    i2cp->i2c->CR1 |= I2C_CR1_STOP;                 /* Setting stop bit.    */
-    i2cp->errors |= I2C_ACK_FAILURE;
 
   #if STM32_I2C_SLAVE_ENABLE
     /*If Slave: lines are released by hardware, do nothing
