@@ -329,48 +329,58 @@ static void i2c_lld_serve_event_interrupt(I2CDriver *i2cp) {
     }
     dp->CR2 &= ~I2C_CR2_ITEVTEN;
     dp->CR1 |= I2C_CR1_STOP;
-    _i2c_wakeup_isr(i2cp);
+    _i2c_wakeup_isr(i2cp); // TODO: ??
     break;
 #if STM32_I2C_SLAVE_ENABLE
   case  I2C_EV1_SLAVE_RECEIVER_ADDRESS_MATCHED:
-
+  dp->CR1 &= ~I2C_CR1_STOP; // need this
+  dp->CR1 &= ~I2C_CR1_ACK; // need this
 	//dp->CR2 &= ~I2C_CR2_ITEVTEN;
 	dmaStreamEnable(i2cp->dmarx);
 
 	break;
   case  I2C_EV1_SLAVE_TRANSMITTER_ADDRESS_MATCHED:
+  dp->CR1 &= ~I2C_CR1_STOP; // need this
+  dp->CR1 &= ~I2C_CR1_ACK; // need this
 	if(i2cp->txcb != NULL)
 	{
 	  i2cp->txcb(i2cp);
-	  dp->CR2 = ~I2C_CR2_ITEVTEN;
+  }
+	  dp->CR2 &= ~I2C_CR2_ITEVTEN;
 	  dmaStreamEnable(i2cp->dmatx);
-	}
+	
 	break;
  // case  I2C_EV1_SLAVE_RECEIVER_SECONDADDRESS_MATCHED:
  // case  I2C_EV1_SLAVE_TRANSMITTER_SECONDADDRESS_MATCHED:
  // case  I2C_EV1_SLAVE_GENERALCALLADDRESS_MATCHED:
  // case  I2C_EV2_SLAVE_BYTE_RECEIVED:
   case  I2C_EV4_SLAVE_STOP_DETECTED:
-    if(i2cp->rxcb != NULL)
-    {
-      dp->CR2 |= I2C_CR2_ITEVTEN;
+    dp->CR2 |= I2C_CR2_ITEVTEN;
 	  dp->CR1 |= I2C_CR1_ACK;
+    if(i2cp->rxcb != NULL)
+    {      
 	  i2cp->rxcb(i2cp, i2cp->rxbuf, i2cp->rxbytes);
     }
 	break;
 //  case  I2C_EV3_SLAVE_BYTE_TRANSMITTED:
   case  I2C_EV3_SLAVE_BYTE_TRANSMITTING:
 	  dp->CR1 &= ~I2C_CR1_STOP;
+    // dp->CR1 |= I2C_CR1_STOP;
 	  dp->CR2 |= I2C_CR2_ITEVTEN;
 	  dp->CR1 |= I2C_CR1_ACK;
 	break;
-//case  I2C_EV2_SLAVE_ACK_FAILURE:
+case  I2C_EV2_SLAVE_ACK_FAILURE:
+  (void)event;
+  while (1);  
+  break;
 #endif /* STM32_I2C_SLAVE_ENABLE */
 
   default:
     break;
   }
   /* Clear ADDR flag. */
+  
+  
   if (event & (I2C_SR1_ADDR | I2C_SR1_ADD10))
     (void)dp->SR2;
 
